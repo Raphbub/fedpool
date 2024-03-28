@@ -1,0 +1,45 @@
+---
+title: "fedpool"
+subtitle: "Extraction de piscines sur la base d'images aériennes"
+author: "Raphaël Bubloz"
+affiliation: "MA ISH - P24"
+format:
+  revealjs:
+    slide-number: c
+    embed-resources: true
+    
+---
+
+## Plan
+
+
+Introduction
+
+Littérature liée
+
+Méthodologie
+
+Pratique
+
+Résultats
+
+Conclusion
+
+
+## Introduction
+
+
+
+
+## Introduction
+
+
+## Littérature liée
+
+## Méthodologie
+
+## Pratique
+
+## Résultats
+
+## Conclusion
