@@ -1,0 +1,79 @@
+---
+title: "Restriction des zones pour images"
+author: "RB"
+format:
+  html:
+    code-fold: true
+    embed-resources: true
+---
+
+Pour essayer de restreindre les potentielles images à télécharger (en résolution 10cm, une tuile de 1x1km fait ~ 55Mo, donc pour avoir 100 km$^{2}$, il faut déjà plus de 5 Go), on essaie d'appliquer quelques règles afin de cibler des zones plus probables pour la localisation de piscines.
+
+### Endroits habités
+
+On peut essayer de récupérer les endroits habités à l'aide de la [StatBL](https://www.bfs.admin.ch/bfs/fr/home/statistiques/construction-logement/logements.assetdetail.27905171.html) en regardant les hectares (groupés) qui contiennent au moins 1 logement et qui ne sont pas trop densément peuplés.
+
+```{r}
+#| warning: false
+#| message: false
+
+library(readr)
+library(dplyr)
+library(here)
+
+# Lire le fichier
+statbl22 <- read_csv2(here::here("data/GWS2022.csv"))
+
+# Subsetter
+statbl22_resume <- statbl22 |> 
+  mutate( # ID avec les 4 premiers chiffres des deux coords
+    km_id = paste(substr(E_KOORD, 1, 4), substr(N_KOORD, 1, 4), sep = "-")
+  ) |>
+  group_by(km_id) |> # Calculer le nombre de logements par km2
+  summarise(logements = sum(WTOT)) |> 
+  dplyr::filter(logements > 0 & logements < 3000) # Supprimer les km2 sans logements ou très densément peuplés
+```
+
+Avec un seuil d'au moins 1 et moins de 3'000 logements, on obtient `r format(nrow(statbl22_resume), big.mark=" ")` km$^{2}$.
+
+### Endroits en-dessous d'une certaine altitude
+
+```{r}
+#| echo: false
+
+alt_limite <- 1000
+```
+
+
+On peut également supposer qu'il vaut la peine d'avoir une piscine dans les régions situées en-dessous d'une certaine altitude, même si l'évolution climatique pourrait, à l'image de la végétation, faire remonter la limite des piscines extérieures.
+
+On utilise ici une version très simplifiée d'un modèle d'altitude, le [MNT25 / 200m](https://www.swisstopo.admin.ch/fr/modele-altimetrique-mnt25-200m) qui dispose d'une maille de...200x200m comme son nom l'indique.
+
+On regarde l'altitude moyenne des 25 altitudes composant le km$^{2}$ et si celle-ci est supérieure à `r alt_limite` mètres, le km$^{2}$ n'est pas retenu.
+
+```{r}
+#| message: false
+mnt_200 <- read_delim(here::here("data/DHM200.xyz"), delim = " ", col_names = c("ecoord", "ncoord", "alti"))
+
+mnt_200_tri <- mnt_200 |> 
+  mutate(
+    ecoord = ecoord + 2000000,
+    ncoord = ncoord + 1000000,
+    km_id = paste(substr(ecoord, 1, 4), substr(ncoord, 1, 4), sep = "-")) |> 
+  group_by(km_id) |> 
+  summarise(altitude_m = mean(alti)) |> 
+  dplyr::filter(altitude_m <= alt_limite)
+```
+
+
+Avec la limite à `r alt_limite` mètres, on obtient `r format(nrow(mnt_200_tri), big.mark=" ")` km$^{2}$.
+
+### Lieux avec logements, en-dessous de `r alt_limite`m d'altitude
+
+```{r}
+lieux_cibles <- inner_join(statbl22_resume, mnt_200_tri, by = join_by(km_id))
+
+taille_jdd <- nrow(lieux_cibles) * 55 / 1024
+```
+
+En joignant les km$^{2}$ communs aux deux tables, on arrive à des zones à cibler de `r format(nrow(lieux_cibles), big.mark=" ")` km$^{2}$. Ce qui, en comptant 55 Mo par image donnerait un jeu de données aux alentours de `r round(taille_jdd)` Go.
