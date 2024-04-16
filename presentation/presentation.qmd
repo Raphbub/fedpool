@@ -7,17 +7,24 @@ format:
   revealjs:
     slide-number: c
     embed-resources: true
-    
+    css: styles.css
 ---
 
-## Plan
+```{r}
+#| echo: false
 
+library(leaflet)
+library(leaflet.providers)
+```
+
+
+## Plan
 
 Introduction
 
 Littérature liée
 
-Méthodologie
+Données / Méthodologie
 
 Pratique
 
@@ -25,16 +32,98 @@ Résultats
 
 Conclusion
 
+## Introduction
+
+Actualité récente
+
+Articles + problèmes
 
 ## Introduction
 
+Manque de données précises
 
-
+Échelon communal + données pas publiques
 
 ## Introduction
 
+Nouvelles méthodes et données à disposition
+
+## Introduction
+
+Sélection d'articles
 
 ## Littérature liée
+
+------------------------------------------------------------------------
+
+### _Platform for Swimming Pool Detection_
+
+::: {style="font-size: 75%;"}
+Sánchez San Blas, H., Carmona Balea, A., Sales Mendes, A., Silva, L. A., & Villarrubia González, G. (2023). A Platform for Swimming Pool Detection and Legal Verification Using a Multi-Agent System and Remote Image Sensing. *International Journal of Interactive Multimedia and Artificial Intelligence, 8*(4), 153. <https://doi.org/10.9781/ijimai.2023.01.002>
+:::
+
+<br>
+
+::: {.fragment}
+Améliorer un processus manuel (!) afin de détecter le 20% de piscines en Espagne qui ne seraient pas déclarées
+:::
+
+<br>
+
+::: {.fragment}
+Comparaison de différentes sources et architectures de modèles
+:::
+
+------------------------------------------------------------------------
+
+### _Platform for Swimming Pool Detection_
+
+:::: columns
+::: {.column width="50%"}
+```{r}
+#| echo: false
+#| fig-width: 4.5
+#| fig-height: 6
+
+leaflet() |>
+  setView(6.57208, 46.51550, 18) |> 
+  addProviderTiles("OpenStreetMap.Mapnik", group = "OSM") |> 
+  addProviderTiles("Esri.WorldImagery", group = "ESRI World") |> 
+  addProviderTiles("NASAGIBS.ModisTerraTrueColorCR", group = "NASA GIBS") |> 
+  addProviderTiles("Stadia.StamenTonerLite", group = "Stamen Lite") |>
+  addLayersControl(
+    baseGroups = c("OSM", "ESRI World", "NASA GIBS", "Stamen Lite")
+  )
+```
+:::
+
+::: {.column width="50%"}
+![Google maps](imgs/google_maps.png){fig-align="center" width="240"}
+
+![Set d'entraînement (Planet?)](imgs/valid_104672_png.rf.005f8d1bed96933b12c81f5553fb48a3.jpg){fig-align="center" width="240"}
+:::
+
+::::
+
+------------------------------------------------------------------------
+
+### Foncier innovant
+
+------------------------------------------------------------------------
+
+## Données
+
+swissIMAGE de swisstopo
+
+Disponible pour toute la Suisse / 2 résolutions disponibles
+
+## Données
+
+[img]()
+
+[img2]()
+
+------------------------------------------------------------------------
 
 ## Méthodologie
 
