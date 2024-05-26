@@ -20,6 +20,8 @@ On peut essayer de récupérer les endroits habités à l'aide de la [StatBL](ht
 library(readr)
 library(dplyr)
 library(here)
+library(sf)
+library(jsonlite)
 
 # Lire le fichier
 statbl22 <- read_csv2(here::here("data/GWS2022.csv"))
@@ -27,7 +29,7 @@ statbl22 <- read_csv2(here::here("data/GWS2022.csv"))
 # Subsetter
 statbl22_resume <- statbl22 |> 
   mutate( # ID avec les 4 premiers chiffres des deux coords
-    km_id = paste(substr(E_KOORD, 1, 4), substr(N_KOORD, 1, 4), sep = "-")
+    km_id = paste(substr(E_KOORD, 1, 5), substr(N_KOORD, 1, 5), sep = "-")
   ) |>
   group_by(km_id) |> # Calculer le nombre de logements par km2
   summarise(logements = sum(WTOT)) |> 
@@ -59,7 +61,7 @@ mnt_200_tri <- mnt_200 |>
   mutate(
     ecoord = ecoord + 2000000,
     ncoord = ncoord + 1000000,
-    km_id = paste(substr(ecoord, 1, 4), substr(ncoord, 1, 4), sep = "-")) |> 
+    km_id = paste(substr(ecoord, 1, 5), substr(ncoord, 1, 5), sep = "-")) |> 
   group_by(km_id) |> 
   summarise(altitude_m = mean(alti)) |> 
   dplyr::filter(altitude_m <= alt_limite)
@@ -72,8 +74,97 @@ Avec la limite à `r alt_limite` mètres, on obtient `r format(nrow(mnt_200_tri)
 
 ```{r}
 lieux_cibles <- inner_join(statbl22_resume, mnt_200_tri, by = join_by(km_id))
+  
 
 taille_jdd <- nrow(lieux_cibles) * 55 / 1024
 ```
 
 En joignant les km$^{2}$ communs aux deux tables, on arrive à des zones à cibler de `r format(nrow(lieux_cibles), big.mark=" ")` km$^{2}$. Ce qui, en comptant 55 Mo par image donnerait un jeu de données aux alentours de `r round(taille_jdd)` Go.
+
+### Resserrer sur les communes avec piscines
+
+Récupérer les communes de la RTS et retransformer les km carrés en format spatial grâce à l'id.
+
+```{r}
+communes <- read_sf(here::here("data/swissBOUNDARIES3D_1_5_LV95_LN02.gpkg"), layer = "tlm_hoheitsgebiet")
+
+communes_interet <- communes |> 
+  dplyr::filter(name %in% c("Lugano", "Collonge-Bellerive", "Veyrier", "Cologny", "Chêne-Bougeries", "Bellinzona", "Blonay - Saint-Légier", "Gambarogno", "Binningen", "Vandoeuvres", "Commugny"))
+
+create_square <- function(km_id) {
+  # Extract X and Y from km_id
+  coords <- strsplit(km_id, "-")[[1]]
+  x <- as.numeric(coords[1]) * 100
+  y <- as.numeric(coords[2]) * 100
+
+  # Create a polygon for the 1 km² square
+  square <- st_polygon(list(matrix(c(
+    x, y,
+    x + 1000, y,
+    x + 1000, y + 1000,
+    x, y + 1000,
+    x, y
+  ), ncol = 2, byrow = TRUE)))
+  
+  return(square)
+}
+
+lieux_cibles_sf <- lieux_cibles |>
+  rowwise() |>
+  mutate(geometry = list(create_square(km_id))) |>
+  st_as_sf()
+
+st_crs(lieux_cibles_sf) <- 2056
+```
+
+Faire des clusters de kilomètres carrés pour pouvoir optimiser les téléchargements
+
+```{r}
+# Extraire les lieux des communes
+lieux_cibles_coms_cibles <- lieux_cibles_sf[st_combine(communes_interet), ]
+
+# Récupérer les coordonnées centrales (1 vs 5 pour un poly)
+centroids <- st_coordinates(st_centroid(lieux_cibles_coms_cibles))
+
+# Définir la distance du clustering
+distance_threshold <- 1000
+
+# CAH
+clusters <- hclust(dist(centroids))
+
+# Couper selon la distance
+cluster_ids <- cutree(clusters, h = distance_threshold)
+
+# Liste des polys joints
+cluster_polygons <- list()
+
+# Pour chaque cluster
+for (cluster_id in unique(cluster_ids)) {
+  # Récupérer les indices des carrés appartenant au cluster
+  cluster_indices <- which(cluster_ids == cluster_id)
+  # Les extraires
+  cluster_squares <- lieux_cibles_coms_cibles[cluster_indices, ]
+  # Les joindre
+  cluster_polygon <- st_union(cluster_squares)
+  # Ajouter le grand poly à la liste
+  cluster_polygons[[cluster_id]] <- cluster_polygon
+}
+
+# Extraire les bounding boxes au format WGS84
+grandes_bboxes <- lapply(cluster_polygons, function(poly) { 
+                           bbox <- st_bbox(st_transform(poly, 4326))
+                           list(
+                             xmin = unname(bbox["xmin"]),
+                             ymin = unname(bbox["ymin"]),
+                             xmax = unname(bbox["xmax"]),
+                             ymax = unname(bbox["ymax"])
+                           )
+                         })
+
+# Transformer les données en JSON
+json_data <- toJSON(grandes_bboxes, pretty=T, auto_unbox = T)
+
+# Écrire le résultat
+write(json_data, file = "data/bounding_boxes.json")
+```
+

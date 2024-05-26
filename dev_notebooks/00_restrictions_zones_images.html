@@ -3149,21 +3149,22 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Lire le fichier</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>statbl22 <span class="ot">&lt;-</span> <span class="fu">read_csv2</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/GWS2022.csv&quot;</span>))</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Subsetter</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>statbl22_resume <span class="ot">&lt;-</span> statbl22 <span class="sc">|&gt;</span> </span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>( <span class="co"># ID avec les 4 premiers chiffres des deux coords</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">km_id =</span> <span class="fu">paste</span>(<span class="fu">substr</span>(E_KOORD, <span class="dv">1</span>, <span class="dv">4</span>), <span class="fu">substr</span>(N_KOORD, <span class="dv">1</span>, <span class="dv">4</span>), <span class="at">sep =</span> <span class="st">&quot;-&quot;</span>)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(km_id) <span class="sc">|&gt;</span> <span class="co"># Calculer le nombre de logements par km2</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">logements =</span> <span class="fu">sum</span>(WTOT)) <span class="sc">|&gt;</span> </span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(logements <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> logements <span class="sc">&lt;</span> <span class="dv">3000</span>) <span class="co"># Supprimer les km2 sans logements ou très densément peuplés</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Lire le fichier</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>statbl22 <span class="ot">&lt;-</span> <span class="fu">read_csv2</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/GWS2022.csv&quot;</span>))</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Subsetter</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>statbl22_resume <span class="ot">&lt;-</span> statbl22 <span class="sc">|&gt;</span> </span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>( <span class="co"># ID avec les 4 premiers chiffres des deux coords</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">km_id =</span> <span class="fu">paste</span>(<span class="fu">substr</span>(E_KOORD, <span class="dv">1</span>, <span class="dv">5</span>), <span class="fu">substr</span>(N_KOORD, <span class="dv">1</span>, <span class="dv">5</span>), <span class="at">sep =</span> <span class="st">&quot;-&quot;</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(km_id) <span class="sc">|&gt;</span> <span class="co"># Calculer le nombre de logements par km2</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">logements =</span> <span class="fu">sum</span>(WTOT)) <span class="sc">|&gt;</span> </span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(logements <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> logements <span class="sc">&lt;</span> <span class="dv">3000</span>) <span class="co"># Supprimer les km2 sans logements ou très densément peuplés</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>Avec un seuil d’au moins 1 et moins de 3’000 logements, on obtient 25 218 km<span class="math inline">\(^{2}\)</span>.</p>
+<p>Avec un seuil d’au moins 1 et moins de 3’000 logements, on obtient 398 551 km<span class="math inline">\(^{2}\)</span>.</p>
 </section>
 <section id="endroits-en-dessous-dune-certaine-altitude" class="level3">
 <h3 class="anchored" data-anchor-id="endroits-en-dessous-dune-certaine-altitude">Endroits en-dessous d’une certaine altitude</h3>
@@ -3179,13 +3180,13 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">ecoord =</span> ecoord <span class="sc">+</span> <span class="dv">2000000</span>,</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">ncoord =</span> ncoord <span class="sc">+</span> <span class="dv">1000000</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">km_id =</span> <span class="fu">paste</span>(<span class="fu">substr</span>(ecoord, <span class="dv">1</span>, <span class="dv">4</span>), <span class="fu">substr</span>(ncoord, <span class="dv">1</span>, <span class="dv">4</span>), <span class="at">sep =</span> <span class="st">&quot;-&quot;</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">km_id =</span> <span class="fu">paste</span>(<span class="fu">substr</span>(ecoord, <span class="dv">1</span>, <span class="dv">5</span>), <span class="fu">substr</span>(ncoord, <span class="dv">1</span>, <span class="dv">5</span>), <span class="at">sep =</span> <span class="st">&quot;-&quot;</span>)) <span class="sc">|&gt;</span> </span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(km_id) <span class="sc">|&gt;</span> </span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">altitude_m =</span> <span class="fu">mean</span>(alti)) <span class="sc">|&gt;</span> </span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(altitude_m <span class="sc">&lt;=</span> alt_limite)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>Avec la limite à 1000 mètres, on obtient 28 888 km<span class="math inline">\(^{2}\)</span>.</p>
+<p>Avec la limite à 1000 mètres, on obtient 716 690 km<span class="math inline">\(^{2}\)</span>.</p>
 </section>
 <section id="lieux-avec-logements-en-dessous-de-1000m-daltitude" class="level3">
 <h3 class="anchored" data-anchor-id="lieux-avec-logements-en-dessous-de-1000m-daltitude">Lieux avec logements, en-dessous de 1000m d’altitude</h3>
@@ -3193,11 +3194,24 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>lieux_cibles <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(statbl22_resume, mnt_200_tri, <span class="at">by =</span> <span class="fu">join_by</span>(km_id))</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>taille_jdd <span class="ot">&lt;-</span> <span class="fu">nrow</span>(lieux_cibles) <span class="sc">*</span> <span class="dv">55</span> <span class="sc">/</span> <span class="dv">1024</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>taille_jdd <span class="ot">&lt;-</span> <span class="fu">nrow</span>(lieux_cibles) <span class="sc">*</span> <span class="dv">55</span> <span class="sc">/</span> <span class="dv">1024</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>En joignant les km<span class="math inline">\(^{2}\)</span> communs aux deux tables, on arrive à des zones à cibler de 17 023 km<span class="math inline">\(^{2}\)</span>. Ce qui, en comptant 55 Mo par image donnerait un jeu de données aux alentours de 914 Go.</p>
+<p>En joignant les km<span class="math inline">\(^{2}\)</span> communs aux deux tables, on arrive à des zones à cibler de 84 270 km<span class="math inline">\(^{2}\)</span>. Ce qui, en comptant 55 Mo par image donnerait un jeu de données aux alentours de 4526 Go.</p>
+</section>
+<section id="resserrer-sur-les-communes-avec-piscines" class="level3">
+<h3 class="anchored" data-anchor-id="resserrer-sur-les-communes-avec-piscines">Resserrer sur les communes avec piscines</h3>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>communes <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/swissBOUNDARIES3D_1_5_LV95_LN02.gpkg&quot;</span>), <span class="at">layer =</span> <span class="st">&quot;tlm_hoheitsgebiet&quot;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>communes_interet <span class="ot">&lt;-</span> communes <span class="sc">|&gt;</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;Lugano&quot;</span>, <span class="st">&quot;Collonge-Bellerive&quot;</span>, <span class="st">&quot;Veyrier&quot;</span>, <span class="st">&quot;Cologny&quot;</span>, <span class="st">&quot;Chêne-Bougeries&quot;</span>, <span class="st">&quot;Bellinzona&quot;</span>, <span class="st">&quot;Blonay - Saint-Légier&quot;</span>, <span class="st">&quot;Gambarogno&quot;</span>, <span class="st">&quot;Binningen&quot;</span>, <span class="st">&quot;Vandoeuvres&quot;</span>, <span class="st">&quot;Commugny&quot;</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 </section>
 
 </main>
