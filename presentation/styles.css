@@ -1,3 +1,11 @@
 .reveal figcaption{
    text-align: center;
 }
+
+.reveal .caption{
+   text-align: center;
+}
+
+.caption{
+   text-align: center;
+}

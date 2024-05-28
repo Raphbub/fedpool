@@ -32,27 +32,89 @@ Résultats
 
 Conclusion
 
-## Introduction
-
-Actualité récente
-
-Articles + problèmes
 
 ## Introduction
 
-Manque de données précises
+Avec le changement climatique, l'usage de l'eau en été devient un enjeu croissant
 
-Échelon communal + données pas publiques
+. . .
+
+![Article du Temps](imgs/le_temps_grimisuat_limite_habs.png){fig-align="center" width="640"}
+
+. . .
+
+Les piscines (privées) sont souvent au cœur des débats
+
+## Introduction
+
+<br> 
+
+Il n'y a pas de données centralisées en Suisse
+
+<br>
+
+Les piscines sont régies par le droit des constructions
+
+<br>
+
+Les données communales ne sont pas publiques (quand elles existent...)
 
 ## Introduction
 
 Nouvelles méthodes et données à disposition
 
-## Introduction
+. . .
 
-Sélection d'articles
+```{=html}
+<iframe width="1000" height="600" src="https://www.rts.ch/info/suisse/14111261-combien-y-atil-de-piscines-privees-dans-votre-commune-notre-carte.html" title="Articles piscines RTS"></iframe>
+```
 
 ## Littérature liée
+
+<br> 
+
+Séminaire basé sur deux "papiers"
+
+- Un rapport sur les aspects fiscaux
+
+- Un article sur les aspects techniques
+
+------------------------------------------------------------------------
+
+### _Foncier innovant_
+
+::: {style="font-size: 65%;"}
+Direction générale des Finances publiques. (2022). *L’intelligence artificielle au service de la lutte contre la fraude : Bilan de l’expérimentation « Foncier innovant »* (p. 9). https://www.impots.gouv.fr/sites/default/files/media/2_actu/home/2022/dp_foncier_innovant.pdf
+:::
+
+::: {.fragment}
+<br>
+
+Après une expérimentation dans 9 départements, plus de 20'000 piscines non déclarées ont été détectées
+
+Recettes fiscales estimées à 10M € supplémentaires dans ces départements
+:::
+
+------------------------------------------------------------------------
+
+### _Foncier innovant_
+
+Le projet a coûté 24M € sur 3 ans et devrait rapporter 40M € en une année pour la France (métropolitaine)
+
+<br>
+
+Peu de détails techniques si ce n'est que l'administration est accompagnée dans la mise en place, mais qu'elle garde la propriété intellectuelle des modèles
+
+<br>
+
+Utilisation uniquement des images aériennes publiques de l'IGN (sur un _cloud_)
+
+------------------------------------------------------------------------
+
+### _Foncier innovant_
+
+![Exemple de piscine détectée en France](imgs/dp_foncier_innovant.png){fig-align="center" width="740"}
+
 
 ------------------------------------------------------------------------
 
@@ -107,28 +169,144 @@ leaflet() |>
 
 ------------------------------------------------------------------------
 
-### Foncier innovant
+### _Platform for Swimming Pool Detection_
+
+<br>
+
+Comparaison de 3 modèles de détection :
+
+- YOLOv4 (You Only Look Once)
+
+- Mask R-CNN (Mask Region-Based Convolutional Neural Network)
+
+- Detectron2
+
+<br>
+
+YOLO obtient les meilleurs résultats dans le cas d'usage
 
 ------------------------------------------------------------------------
 
+### _Platform for Swimming Pool Detection_
+
+<br>
+
+`YOLO` est une architecture visant à accomplir de la détection d'image
+
+<br>
+
+Cela consiste à identifier l'emplacement des "objets" **et** à leur attribuer une classe
+
+::: {.fragment}
+<br>
+`YOLO` est un _single-stage object detector_, les objets et classes sont attribués pour l'image entière, elle ne passe donc qu'une fois dans le modèle
+:::
+
+------------------------------------------------------------------------
+
+### _Platform for Swimming Pool Detection_
+
+![Exemple du workflow YOLO (Sánchez San Blas et al., 2023)](imgs/ex_workflow_yolo.png)
+ 
+------------------------------------------------------------------------
+
+### _Platform for Swimming Pool Detection_
+
+<br> 
+
+La tâche à effectuer est de la détection de classe unique (piscine)
+ 
+<br>
+
+Le jeu de données d'entraînement est composé de 999 images (799 _train_ | 200 _test_) pour 2300 piscines (1892 | 408)
+
+
+------------------------------------------------------------------------
+
+### _Platform for Swimming Pool Detection_
+
+#### Métriques d'évaluation
+
+Précision = $\frac{TP}{TP + FP}$
+
+Recall = $\frac{TP}{TP + FN}$
+
+F1 = $2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}$
+
+La vitesse en FPS
+
+La _mean average precision_ (mAP) (courbe de précision et recall en fonction de la confiance dans la détection)
+
+L'_Intersection over Union_ (IoU) (chevauchement des bounding boxes / la surface de leur union)
+
+------------------------------------------------------------------------
+
+### _Platform for Swimming Pool Detection_
+
+
+![Calcul d'IoU (https://pyimagesearch.com, 2016)](imgs/IoU_PyImageSearch.png){fig-align="center" width="540"}
+
+
+------------------------------------------------------------------------
+
+### _Platform for Swimming Pool Detection_
+
+```{=html}
+<iframe width="1000" height="600" src="https://blog.roboflow.com/mean-average-precision/#the-map-formula-how-to-calculate-map" title="Calcul mAP"></iframe>
+```
+
+
+------------------------------------------------------------------------
+
+### _Platform for Swimming Pool Detection_
+
+Le reste de l'article contient la description du système dans lequel s'intègre la détection
+
+::: {.fragment}
+Les conclusions sont que le modèle YOLOv4 est le plus approprié et que des ajustements peuvent être fait selon l'objectif à atteindre
+
+<br>
+
+Monter le seuil de confiance à 25% au lieu de 10% pour améliorer la précision et utiliser des images plus précises malgré le temps de calcul plus important
+:::
+
+# fedpool
+
 ## Données
 
-swissIMAGE de swisstopo
+<br>
 
-Disponible pour toute la Suisse / 2 résolutions disponibles
+[swissIMAGE 10cm](https://www.swisstopo.admin.ch/fr/orthophotos-swissimage-10-cm) de swisstopo
+
+<br>
+
+Disponible pour toute la Suisse, images de 1$km^{2}$
+
+<br>
+
+2 résolutions : 0.1 et 2 mètres
 
 ## Données
 
-[img]()
-
-[img2]()
+![Extrait de Plan-les-Ouates, 0.1m, © swisstopo](imgs/24980-11140.jpg)
 
 ------------------------------------------------------------------------
 
 ## Méthodologie
+
+Objectif : Réaliser, en local, un pipeline permettant d'automatiser la récupération d'images, la détection de piscines et l'affichage du résultat sur une carte interactive
+
+::: {.fragment}
+<br>
+
+Profiter de l'entraînement du modèle pour télécharger et pré-traiter les images de façon réutilisable
+:::
+
 
 ## Pratique
 
 ## Résultats
 
 ## Conclusion
+
+Introduction au traitement d'image
