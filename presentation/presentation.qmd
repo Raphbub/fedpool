@@ -30,6 +30,12 @@ Résultats
 
 Conclusion
 
+<br>
+
+::: {style="font-size: 80%;"}
+[Code disponible sur https://github.com/Raphbub/fedpool](https://github.com/Raphbub/fedpool)
+:::
+
 
 ## Introduction
 
@@ -265,7 +271,7 @@ Les conclusions sont que le modèle YOLOv4 est le plus approprié et que des aju
 
 <br>
 
-Monter le seuil de confiance à 25% au lieu de 10% pour améliorer la précision et utiliser des images plus précises malgré le temps de calcul plus important
+Monter le seuil de tolérance (IoU) à 25% au lieu de 10% pour améliorer la précision et utiliser des images plus précises malgré le temps de calcul plus important
 :::
 
 # fedpool
@@ -425,6 +431,140 @@ Chargement des polygones dans une carte leaflet
 
 ## Résultats
 
+### Post-présentation
+
+Entraînement sur le modèle YOLOv5m
+
+<br>
+
+| Jeu de données         | Images | Piscines |
+|--------------|-------------------:|-------------------------:|
+| Entraînement | 248 (85%)          | 612 (86%)                |
+| Validation   | 44 (15%)           | 99  (14%)                |
+
+<br>
+
+_Data augmentation_ limitée à retourner l'image (resp. horizontalement et verticalement) selon une probabilité de 0.5
+
+## Résultats
+
+Le modèle obtient de bons résultats après une dizaine d'_epochs_ et tend à _overfit_ ensuite
+
+![Métriques par _epoch_](imgs/results.png)
+
+## Résultats
+
+::: {layout-ncol=2}
+![Labels](imgs/val_batch0_labels.jpg)
+
+![Prédits](imgs/val_batch0_pred.jpg)
+:::
+
+## Résultats
+
+::: {layout-ncol=2}
+![Labels](imgs/val_batch1_labels.jpg)
+
+![Prédits](imgs/val_batch1_pred.jpg)
+:::
+
+## Résultats
+
+::: {layout-ncol=2}
+![Labels avec un oubli](imgs/val_batch2_labels.jpg)
+
+![Prédits oubli détecté](imgs/val_batch2_pred.jpg)
+:::
+
+## Résultats
+
+Le modèle a une précision plutôt correcte (rate peu de piscines "normales")
+
+<br>
+
+Il confond parfois avec les trampolines, toiles de tente ou toits clairs (faux positifs)
+
+<br>
+
+Peine à distinguer les piscines bâchées avec peu de contraste
+
+<br>
+
+Au vu des prédictions, on pourrait mettre une limite à 0.6-0.7 pour restreindre le nombre de faux positifs
+
+
+------------------------------------------------------------------------
+
+### Piste d'amélioration
+
+#### Variance intra-classe
+
+À quoi ressemblent les piscines sur les images ?
+
+
+:::: {.columns style="text-align: center"}
+
+::: {.column width="20%"}
+!["Normale"](imgs/ex_piscine_ouverte.png)
+:::
+
+::: {.column width="25%"}
+![Bâchée](imgs/ex_piscine_bachee.png)
+:::
+
+::: {.column width="25%"}
+![Couverte](imgs/ex_piscine_couverte.png)
+:::
+
+::: {.column width="25%"}
+![Verte](imgs/ex_piscine_verte.png)
+:::
+
+::::
+
+::: {.fragment}
+Augmenter le nombre d'images ou séparer en multiples classes ?
+:::
+
+------------------------------------------------------------------------
+
+### Difficultés pour la suite
+
+#### Piscine sur plusieurs images
+
+<br>
+
+Identifier les _bounding boxes_ adjacentes à un bord 
+
+<br>
+
+Identifier quelle image vient à la suite et ses bbox
+
+<br>
+
+Définir un seuil au-delà duquel joindre les _bbox_ en un seul polygone
+
+
+## Conclusion
+
+::: {style="font-size: 115%;"}
+<br>
+
+Introduction au traitement d'images
+
+
+Beaucoup de difficultés...mais beaucoup de leçons apprises
+
+
+Commencer par le modèle aurait été plus judicieux
+
+[https://github.com/Raphbub/fedpool](https://github.com/Raphbub/fedpool)
+:::
+
+## Résultats
+
+### Version présentation (29.05)
+
 ::: {.fragment style="font-size: 150%;"}
 ❌  Étape d'entraînement (`pytorch`)
 :::
@@ -437,11 +577,11 @@ Premier entraînement non échoué hier soir...mais présentation à terminer
 
 ------------------------------------------------------------------------
 
-![Mes attentes | En vrai, un batch de validation](imgs/val_batch0_labels.jpg)
+![Mes attentes | En vrai, un batch de validation](imgs/v1_val_batch0_labels.jpg)
 
 ------------------------------------------------------------------------
 
-![La réalité | Prédictions effectives du même batch](imgs/val_batch0_pred.jpg)
+![La réalité | Prédictions effectives du même batch](imgs/v1_val_batch0_pred.jpg)
 
 ------------------------------------------------------------------------
 
