@@ -1,6 +1,6 @@
 ---
 title: "fedpool"
-subtitle: "Extraction de piscines sur la base d'images aériennes"
+subtitle: "Détection de piscines sur la base d'images aériennes"
 author: "Raphaël Bubloz"
 affiliation: "MA ISH - P24"
 format:
@@ -25,8 +25,6 @@ Introduction
 Littérature liée
 
 Données / Méthodologie
-
-Pratique
 
 Résultats
 
@@ -218,7 +216,7 @@ La tâche à effectuer est de la détection de classe unique (piscine)
  
 <br>
 
-Le jeu de données d'entraînement est composé de 999 images (799 _train_ | 200 _test_) pour 2300 piscines (1892 | 408)
+Le jeu de données d'entraînement est composé de 999 images (799 _train_ | 200 _test_) contenant 2300 piscines (1892 | 408)
 
 
 ------------------------------------------------------------------------
@@ -235,9 +233,9 @@ F1 = $2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \te
 
 La vitesse en FPS
 
-La _mean average precision_ (mAP) (courbe de précision et recall en fonction de la confiance dans la détection)
+L'_Intersection over Union_ (IoU) (chevauchement des _bounding boxes_ / la surface de leur union)
 
-L'_Intersection over Union_ (IoU) (chevauchement des bounding boxes / la surface de leur union)
+La _mean average precision_ (mAP) (courbe de précision et recall en fonction de la confiance dans la détection)
 
 ------------------------------------------------------------------------
 
@@ -263,7 +261,7 @@ L'_Intersection over Union_ (IoU) (chevauchement des bounding boxes / la surface
 Le reste de l'article contient la description du système dans lequel s'intègre la détection
 
 ::: {.fragment}
-Les conclusions sont que le modèle YOLOv4 est le plus approprié et que des ajustements peuvent être fait selon l'objectif à atteindre
+Les conclusions sont que le modèle YOLOv4 est le plus approprié et que des ajustements peuvent être faits selon l'objectif à atteindre
 
 <br>
 
@@ -280,11 +278,11 @@ Monter le seuil de confiance à 25% au lieu de 10% pour améliorer la précision
 
 <br>
 
-Disponible pour toute la Suisse, images de 1$km^{2}$
+Orthophotos pour toute la Suisse, images de 1$km^{2}$
 
 <br>
 
-2 résolutions : 0.1 et 2 mètres
+2 résolutions : 0.1 (~ 55 Mo/img, 2.4To en tout) et 2 mètres
 
 ## Données
 
@@ -294,7 +292,9 @@ Disponible pour toute la Suisse, images de 1$km^{2}$
 
 ## Méthodologie
 
-Objectif : Réaliser, en local, un pipeline permettant d'automatiser la récupération d'images, la détection de piscines et l'affichage du résultat sur une carte interactive
+<br>
+
+**Objectif** : Réaliser, en local, un pipeline permettant d'automatiser la récupération d'images, la détection de piscines et l'affichage du résultat sur une carte interactive
 
 ::: {.fragment}
 <br>
@@ -302,11 +302,229 @@ Objectif : Réaliser, en local, un pipeline permettant d'automatiser la récupé
 Profiter de l'entraînement du modèle pour télécharger et pré-traiter les images de façon réutilisable
 :::
 
+------------------------------------------------------------------------
 
-## Pratique
+### Téléchargement des images
+
+<br>
+
+Via l'API Spatial Temporal Asset Catalog (STAC) de swisstopo
+
+<br>
+
+Téléchargement en indiquant une bounding box en coordonnées WGS84 (lat/long)
+
+<br>
+
+Données volumineuses --> Identifier des zones d'intérêt
+
+------------------------------------------------------------------------
+
+### Identification des zones d'intérêt
+
+<br> 
+
+Quelques hypothèses sur la localisation des piscines :
+
+- Dans des zones avec densité de logements $< 3000 / km^{2}$
+
+- En dessous de 1'000 mètres d'altitude
+
+::: {.fragment}
+- Cibler les communes avec le plus de piscines
+:::
+
+::: {.fragment}
+- CAH pour faire des clusters de $km^{2}$ identifiés adjacents
+:::
+
+------------------------------------------------------------------------
+
+### Préparation des images
+
+<br>
+
+Conserver l'information spatiale en nommant selon les coordonnées (suisses) `EEEE-NNNN.tif`
+
+<br>
+
+Redécoupage en image de 1'000x1'000 pixels (100x100 mètres) `EEEEE-NNNNN.tif`
+
+<br>
+
+Conversion de (geo)tiff à jpeg `EEEEE-NNNNN.jpg`
+
+------------------------------------------------------------------------
+
+### Labellisation des images
+
+<br>
+
+À l'aide de [Label Studio](https://labelstud.io/) (en local), 300 images labellisées manuellement
+
+<br>
+
+Annotation au "format YOLO"
+
+```json
+[
+ {class, x, y, width, height},
+ {0, 0.25, 0.56, 0.2, 0.4}
+]
+```
+
+<br>
+
+Les images et les annotations ont le même nom (extensions _.jpg_ et _.txt_)
+
+------------------------------------------------------------------------
+
+![Exemple d'annotation au format YOLO](imgs/yolo_format_ultralytics.jpg)
+
+------------------------------------------------------------------------
+
+
+![Exemple d'annotation du projet](imgs/annotation_maison.png)
+
+------------------------------------------------------------------------
+
+### Architecture(s) YOLO en bref
+
+<br>
+
+Depuis la v5, YOLO vient avec différentes tailles de modèles (n, s, m, l, x)...et différentes versions (ex. YOLOv5 v6.0)
+
+<br>
+
+::: {.fragment}
+En **très** résumé, l'architecture est composée de l'ossature (_backbone_) et de la tête (_head_)
+
+Le _backbone_ prend en entrée l'image et en extrait la _feature map_
+
+La _head_ utilise les _features maps_ pour faire les détections finales (bbox, classes, scores)
+:::
+
+------------------------------------------------------------------------
+
+```{=html}
+<iframe width="1000" height="600" src="https://github.com/ultralytics/yolov5/issues/280" title="Architecture YOLO"></iframe>
+```
+
+------------------------------------------------------------------------
+
+### Post-traitement
+
+<br>
+
+Conversion des bounding boxes en une couche de polygones
+
+<br>
+
+Chargement des polygones dans une carte leaflet
+
 
 ## Résultats
 
+::: {.fragment style="font-size: 150%;"}
+❌  Étape d'entraînement (`pytorch`)
+:::
+
+::: {.fragment style="font-size: 150%;"}
+<br>
+
+Premier entraînement non échoué hier soir...mais présentation à terminer
+:::
+
+------------------------------------------------------------------------
+
+![Mes attentes | En vrai, un batch de validation](imgs/val_batch0_labels.jpg)
+
+------------------------------------------------------------------------
+
+![La réalité | Prédictions effectives du même batch](imgs/val_batch0_pred.jpg)
+
+------------------------------------------------------------------------
+
+### Difficultés avec le modèle
+
+<br>
+
+Une trentaine d'hyperparamètres ajustables
+
+<br>
+
+_Data augmentation_ par défaut
+
+<br>
+
+Quelle architecture est la plus adaptée ?
+
+
+------------------------------------------------------------------------
+
+![Data augmentation par défaut | Batch de train](imgs/train_batch1.jpg)
+
+------------------------------------------------------------------------
+
+### Difficultés pour la suite
+
+#### Variance intra-classe
+
+À quoi ressemblent les piscines sur les images ?
+
+
+:::: {.columns style="text-align: center"}
+
+::: {.column width="20%"}
+!["Normale"](imgs/ex_piscine_ouverte.png)
+:::
+
+::: {.column width="25%"}
+![Bâchée](imgs/ex_piscine_bachee.png)
+:::
+
+::: {.column width="25%"}
+![Couverte](imgs/ex_piscine_couverte.png)
+:::
+
+::: {.column width="25%"}
+![Verte](imgs/ex_piscine_verte.png)
+:::
+
+::::
+
+------------------------------------------------------------------------
+
+### Difficultés pour la suite
+
+#### Piscine sur plusieurs images
+
+<br>
+
+Identifier les _bounding boxes_ adjacentes à un bord 
+
+<br>
+
+Identifier quelle image vient à la suite et ses bbox
+
+<br>
+
+Définir un seuil au-delà duquel joindre les _bbox_ en un seul polygone
+
+
 ## Conclusion
 
-Introduction au traitement d'image
+::: {style="font-size: 115%;"}
+<br>
+
+Introduction au traitement d'images
+
+
+Beaucoup de difficultés...mais beaucoup de leçons apprises
+
+
+Commencer par le modèle aurait été plus judicieux
+
+[https://github.com/Raphbub/fedpool](https://github.com/Raphbub/fedpool)
+:::
+

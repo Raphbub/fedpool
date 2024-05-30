@@ -9,3 +9,12 @@
 .caption{
    text-align: center;
 }
+
+.bottom-align {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+.bottom-align img {
+    margin-top: auto;
+}

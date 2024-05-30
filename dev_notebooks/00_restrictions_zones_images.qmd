@@ -36,7 +36,7 @@ statbl22_resume <- statbl22 |>
   dplyr::filter(logements > 0 & logements < 3000) # Supprimer les km2 sans logements ou très densément peuplés
 ```
 
-Avec un seuil d'au moins 1 et moins de 3'000 logements, on obtient `r format(nrow(statbl22_resume), big.mark=" ")` km$^{2}$.
+Avec un seuil d'au moins 1 et moins de 3'000 logements, on obtient `r format(nrow(statbl22_resume)/100, big.mark=" ")` km$^{2}$.
 
 ### Endroits en-dessous d'une certaine altitude
 
@@ -68,7 +68,7 @@ mnt_200_tri <- mnt_200 |>
 ```
 
 
-Avec la limite à `r alt_limite` mètres, on obtient `r format(nrow(mnt_200_tri), big.mark=" ")` km$^{2}$.
+Avec la limite à `r alt_limite` mètres, on obtient `r format(nrow(mnt_200_tri)/100, big.mark=" ")` km$^{2}$.
 
 ### Lieux avec logements, en-dessous de `r alt_limite`m d'altitude
 
@@ -76,12 +76,12 @@ Avec la limite à `r alt_limite` mètres, on obtient `r format(nrow(mnt_200_tri)
 lieux_cibles <- inner_join(statbl22_resume, mnt_200_tri, by = join_by(km_id))
   
 
-taille_jdd <- nrow(lieux_cibles) * 55 / 1024
+taille_jdd <- nrow(lieux_cibles) / 100 * 55 / 1024
 ```
 
-En joignant les km$^{2}$ communs aux deux tables, on arrive à des zones à cibler de `r format(nrow(lieux_cibles), big.mark=" ")` km$^{2}$. Ce qui, en comptant 55 Mo par image donnerait un jeu de données aux alentours de `r round(taille_jdd)` Go.
+En joignant les km$^{2}$ communs aux deux tables, on arrive à des zones à cibler de `r format(nrow(lieux_cibles)/100, big.mark=" ")` km$^{2}$. Ce qui, en comptant 55 Mo par image donnerait un jeu de données aux alentours de `r round(taille_jdd)` Go.
 
-### Resserrer sur les communes avec piscines
+### Resserrer sur les communes avec pisciness
 
 Récupérer les communes de la RTS et retransformer les km carrés en format spatial grâce à l'id.
 
@@ -119,7 +119,7 @@ st_crs(lieux_cibles_sf) <- 2056
 
 Faire des clusters de kilomètres carrés pour pouvoir optimiser les téléchargements
 
-```{r}
+```{r, eval=FALSE}
 # Extraire les lieux des communes
 lieux_cibles_coms_cibles <- lieux_cibles_sf[st_combine(communes_interet), ]
 
