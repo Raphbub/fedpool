@@ -1,6 +1,8 @@
 # fedpool
 
-Extraction et localisation automatique de piscines sur la base d'images aériennes de *swisstopo*.
+Détection et localisation automatique de piscines sur la base d'images aériennes de *swisstopo*.
+
+_À l'exception du dossier `presentation`, les images du dépôt sont issues de [SWISSIMAGE 10 cm](https://www.swisstopo.admin.ch/fr/orthophotos-swissimage-10-cm) et sont © swisstopo._
 
 ### Intro
 
