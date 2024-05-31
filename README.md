@@ -8,6 +8,8 @@ _À l'exception du dossier `presentation`, les images du dépôt sont issues de 
 
 À l'aide du modèle _fedpool_ basé sur l'architecture _YOLOv5m_, il est possible de détecter les piscines sur les images aériennes de _swisstopo_, l'Office fédéral de topographie. Le modèle ayant été entraîné sur un nombre relativement restreint de données, il ne gère pas de façon optimale la grande diversité des piscines visibles depuis les airs. En effet, en plus des piscines "classiques" bleues, il y en a des couvertes (verrière), bâchées (en bleu foncé, blanc, gris, etc.), des non traitées de couleur verte ainsi que des formes plus ou moins originales et des tailles variées.
 
+![Exemple de résultat en mosaique](presentation/imgs/val_batch0_pred.jpg)
+
 Toutefois, le _pipeline_ (ou presque) permet de reproduire l'ensemble des étapes afin de pouvoir également entraîner un modèle afin d'obtenir des (meilleures) prédictions.
 
 ### Organisation
