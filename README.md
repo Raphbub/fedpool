@@ -10,6 +10,8 @@ _À l'exception du dossier `presentation`, les images du dépôt sont issues de 
 
 <img src="presentation/imgs/val_batch2_pred.jpg" alt="Exemple de résultat en mosaique" width="50%"/>
 
+Pour voir un aperçu des résultats, aller sur [https://map.geo.admin.ch/?lang=fr](https://map.geo.admin.ch/?lang=fr) > Onglet Outils avancés > Importer et rentrer le lien suivant : https://raw.githubusercontent.com/Raphbub/fedpool/main/data/detected_pools.kml puis Importer. Les résultats sont "bruts" et n'ont pas été triés selon la confiance de la détection.
+
 Toutefois, le _pipeline_ (ou presque) permet de reproduire l'ensemble des étapes afin de pouvoir également entraîner un modèle pour obtenir des (meilleures) prédictions.
 
 ### Organisation
